@@ -1,28 +1,17 @@
-modules = ["nodejs-24"]
+modules = ["php-8.2", "nodejs-24"]
 
-[deployment]
-router = "application"
-deploymentTarget = "autoscale"
+# Open this file in the editor by default
+entrypoint = "public/index.php"
 
-[deployment.postBuild]
-args = ["pnpm", "store", "prune"]
-env = { "CI" = "true" }
-
-[workflows]
-runButton = "Project"
-
-[agent]
-stack = "PNPM_WORKSPACE"
-expertMode = true
-
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 20000
+# Start the PHP server
+run = "php -S 0.0.0.0:8080 -t public"
 
 [[ports]]
 localPort = 8080
-externalPort = 8080
-
-[[ports]]
-localPort = 8081
 externalPort = 80
+
+[nix]
+packages = ["psmisc"]
+
+[agent]
+expertMode = true
