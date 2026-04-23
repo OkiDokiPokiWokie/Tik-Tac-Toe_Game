@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tic Tac Toe - Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="bootstrap-5.3.8-dist/css/bootstrap.min.css">
+</head>
+<body class="bg-dark text-white">
+
+    <div class="auth-card d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="card shadow-sm bg-secondary text-white" style="width: 400px;">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-4">Tic Tac Toe</h3>
+                
+                <form action="/login" method="POST" class="mb-4">
+                    <h4>Log In</h4>
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Log In</button>
+                </form>
+
+                <hr class="border-light">
+
+                <form action="/signup" method="POST">
+                    <h4>Create Account</h4>
+                    <div class="mb-3">
+                        <label class="form-label">New Username</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline-light w-100">Sign Up</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="bootstrap-5.3.8-dist/js/bootstrap.min.js"></script>
+</body>
+</html>

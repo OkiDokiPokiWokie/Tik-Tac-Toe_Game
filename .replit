@@ -1,17 +1,20 @@
-modules = ["php-8.2", "nodejs-24"]
+# Set the entrypoint to your main server file
+entrypoint = "server.js"
 
-# Open this file in the editor by default
-entrypoint = "public/index.php"
+# Run the npm start script defined in your package.json
+run = "npm start"
 
-# Start the PHP server
-run = "php -S 0.0.0.0:8080 -t public"
-
+# Map your internal Node.js port (3000) to the standard web port (80)
 [[ports]]
-localPort = 8080
+localPort = 3000
 externalPort = 80
 
 [nix]
-packages = ["psmisc"]
+channel = "stable-23_11"
+packages = [
+    "nodejs-18_x",
+    "psmisc"
+]
 
 [agent]
 expertMode = true
