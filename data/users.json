@@ -2,9 +2,9 @@
   "user": {
     "password": "user",
     "stats": {
-      "wins": 0,
-      "losses": 0,
-      "draws": 0
+      "wins": 10,
+      "losses": 2,
+      "draws": 2
     }
   }
 }

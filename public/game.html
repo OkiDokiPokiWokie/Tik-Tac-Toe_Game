@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe AI</title>
+    <link href="bootstrap-5.3.8-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h1 class="display-4 mb-4">Tic-Tac-Toe</h1>
+
+            <div id="status" class="alert alert-primary">Player X's Turn</div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <div class="col-4 cell" data-index="0"></div>
+                        <div class="col-4 cell" data-index="1"></div>
+                        <div class="col-4 cell" data-index="2"></div>
+                    </div>
+                    <div class="row g-0">
+                        <div class="col-4 cell" data-index="3"></div>
+                        <div class="col-4 cell" data-index="4"></div>
+                        <div class="col-4 cell" data-index="5"></div>
+                    </div>
+                    <div class="row g-0">
+                        <div class="col-4 cell" data-index="6"></div>
+                        <div class="col-4 cell" data-index="7"></div>
+                        <div class="col-4 cell" data-index="8"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="reset-btn" class="btn btn-outline-danger w-100">Restart Match</button>
+        </div>
+    </div>
+</div>
+
+<script src="bootstrap-5.3.8-dist/js/bootstrap.min.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
