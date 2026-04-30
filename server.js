@@ -1,10 +1,15 @@
+require('dotenv').config(); // Load the .env file for the API key
 const express = require('express');
 const session = require('express-session');
 const fs = require('fs');
 const path = require('path');
+const Groq = require('groq-sdk'); // Import Groq SDK
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Groq with your API Key
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // 1. MIDDLEWARE
 app.use(express.urlencoded({ extended: true }));
@@ -55,6 +60,45 @@ app.post('/login', (req, res) => {
         res.redirect('/game.html');
     } else {
         res.send("Invalid credentials. <a href='/'>Go back</a>");
+    }
+});
+
+// --- NEW: AI MOVE ROUTE ---
+app.post('/ai-move', async (req, res) => {
+    const { board, aiPiece } = req.body;
+
+    // 1. Find empty indices to tell the AI what moves are legal
+    const emptyIndices = board.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
+
+    if (emptyIndices.length === 0) return res.status(400).json({ error: "No moves left" });
+
+    try {
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: `You are a Tic-Tac-Toe engine playing as ${aiPiece}. The board indices are 0-8. Current board: ${JSON.stringify(board)}. Legal moves (empty indices) are: ${emptyIndices.join(', ')}. Respond ONLY with a single integer from the legal moves list. No explanation, no greeting, no punctuation.`
+                }
+            ],
+            model: "llama3-8b-8192", // Fast and efficient for logic tasks
+        });
+
+        let aiMove = chatCompletion.choices[0]?.message?.content.trim();
+        let moveIndex = parseInt(aiMove);
+
+        // --- VALIDATOR ---
+        // If AI hallucinates an occupied square or non-number, pick a random legal square as fallback
+        if (isNaN(moveIndex) || !emptyIndices.includes(moveIndex)) {
+            console.log(`AI Hallucinated: "${aiMove}". Falling back to random.`);
+            moveIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+        }
+
+        res.json({ move: moveIndex });
+    } catch (error) {
+        console.error("Groq API Error:", error);
+        // Fallback if API is down or times out
+        const fallbackMove = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+        res.json({ move: fallbackMove });
     }
 });
 

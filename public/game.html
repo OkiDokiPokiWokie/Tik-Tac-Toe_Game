@@ -14,29 +14,41 @@
         <div class="col-md-6 text-center">
             <h1 class="display-4 mb-4">Tic-Tac-Toe</h1>
 
-            <div id="status" class="alert alert-primary">Player X's Turn</div>
-
-            <div class="card shadow-sm mb-4">
-                <div class="card-body p-0">
-                    <div class="row g-0">
-                        <div class="col-4 cell" data-index="0"></div>
-                        <div class="col-4 cell" data-index="1"></div>
-                        <div class="col-4 cell" data-index="2"></div>
-                    </div>
-                    <div class="row g-0">
-                        <div class="col-4 cell" data-index="3"></div>
-                        <div class="col-4 cell" data-index="4"></div>
-                        <div class="col-4 cell" data-index="5"></div>
-                    </div>
-                    <div class="row g-0">
-                        <div class="col-4 cell" data-index="6"></div>
-                        <div class="col-4 cell" data-index="7"></div>
-                        <div class="col-4 cell" data-index="8"></div>
-                    </div>
+            <div id="mode-selection" class="card shadow-sm mb-4 p-4">
+                <h3 class="mb-3">Select Game Mode</h3>
+                <div class="d-grid gap-3">
+                    <button id="btn-vs-guest" class="btn btn-primary btn-lg">Play vs Guest (Hotseat)</button>
+                    <button id="btn-vs-ai" class="btn btn-success btn-lg">Play vs Groq AI</button>
                 </div>
             </div>
 
-            <button id="reset-btn" class="btn btn-outline-danger w-100">Restart Match</button>
+            <div id="game-board-area" class="d-none">
+                <div id="status" class="alert alert-primary">Player X's Turn</div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-0">
+                        <div class="row g-0">
+                            <div class="col-4 cell" data-index="0"></div>
+                            <div class="col-4 cell" data-index="1"></div>
+                            <div class="col-4 cell" data-index="2"></div>
+                        </div>
+                        <div class="row g-0">
+                            <div class="col-4 cell" data-index="3"></div>
+                            <div class="col-4 cell" data-index="4"></div>
+                            <div class="col-4 cell" data-index="5"></div>
+                        </div>
+                        <div class="row g-0">
+                            <div class="col-4 cell" data-index="6"></div>
+                            <div class="col-4 cell" data-index="7"></div>
+                            <div class="col-4 cell" data-index="8"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="reset-btn" class="btn btn-outline-danger w-100 mb-2">Restart Match</button>
+                <button id="menu-btn" class="btn btn-outline-secondary w-100">Back to Menu</button>
+            </div>
+
         </div>
     </div>
 </div>

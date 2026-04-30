@@ -1,13 +1,22 @@
+// Game Elements
 const cells = document.querySelectorAll('.cell');
 const statusText = document.getElementById('status');
 const resetBtn = document.getElementById('reset-btn');
 
-// Randomly assign the logged-in user to X or O
+// Menu Elements
+const modeSelection = document.getElementById('mode-selection');
+const gameBoardArea = document.getElementById('game-board-area');
+const btnVsGuest = document.getElementById('btn-vs-guest');
+const btnVsAi = document.getElementById('btn-vs-ai');
+const menuBtn = document.getElementById('menu-btn');
+
+// Game State Variables
+let gameMode = 'pvp'; // 'pvp' or 'ai'
 let userPiece = Math.random() < 0.5 ? "X" : "O";
-let guestPiece = userPiece === "X" ? "O" : "X";
-let currentPlayer = "X"; // X always goes first in standard Tic-Tac-Toe
+let opponentPiece = userPiece === "X" ? "O" : "X";
+let currentPlayer = "X"; // X always goes first
 let gameState = ["", "", "", "", "", "", "", "", ""];
-let gameActive = true;
+let gameActive = false; // Starts false until a mode is selected
 
 const winConditions = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -15,12 +24,38 @@ const winConditions = [
     [0, 4, 8], [2, 4, 6]
 ];
 
-// Initialize the game board status
-updateStatusDisplay();
+// --- MENU LISTENERS ---
+btnVsGuest.addEventListener('click', () => {
+    gameMode = 'pvp';
+    startGame();
+});
+
+btnVsAi.addEventListener('click', () => {
+    gameMode = 'ai';
+    startGame();
+});
+
+menuBtn.addEventListener('click', () => {
+    gameActive = false;
+    gameBoardArea.classList.add('d-none');
+    modeSelection.classList.remove('d-none');
+});
+
+// --- CORE GAME FUNCTIONS ---
+function startGame() {
+    modeSelection.classList.add('d-none');
+    gameBoardArea.classList.remove('d-none');
+    resetBoard();
+}
 
 function updateStatusDisplay() {
     if (!gameActive) return;
-    let playerLabel = currentPlayer === userPiece ? "(You)" : "(Guest)";
+    let playerLabel = "";
+    if (currentPlayer === userPiece) {
+        playerLabel = "(You)";
+    } else {
+        playerLabel = gameMode === 'pvp' ? "(Guest)" : "(AI)";
+    }
     statusText.innerText = `Turn: ${currentPlayer} ${playerLabel}`;
     statusText.className = "alert alert-primary";
 }
@@ -43,19 +78,51 @@ async function sendResultToServer(gameResult) {
     });
 }
 
+// --- AI INTEGRATION ---
+async function fetchAiMove() {
+    statusText.innerText = `AI is thinking...`;
+    statusText.className = "alert alert-info";
+
+    try {
+        const response = await fetch('/ai-move', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ board: gameState, aiPiece: currentPlayer })
+        });
+
+        const data = await response.json();
+
+        if (data.move !== undefined && gameActive) {
+            applyMove(data.move, currentPlayer);
+        }
+    } catch (error) {
+        console.error("Error fetching AI move:", error);
+        statusText.innerText = "Error: AI disconnected.";
+        statusText.className = "alert alert-danger";
+    }
+}
+
+// --- MOVE LOGIC ---
 function handleCellClick(e) {
     if (!gameActive) return;
+
+    // If it's AI mode, block clicks when it is the AI's turn
+    if (gameMode === 'ai' && currentPlayer !== userPiece) return;
 
     const idx = e.target.getAttribute('data-index');
     if (gameState[idx] !== "") return;
 
-    // Both players play on the same screen, so we accept all clicks
-    gameState[idx] = currentPlayer;
-    e.target.innerText = currentPlayer;
-    e.target.classList.add(currentPlayer === "X" ? "text-primary" : "text-danger");
+    applyMove(idx, currentPlayer);
+}
+
+function applyMove(idx, player) {
+    gameState[idx] = player;
+    const cell = document.querySelector(`.cell[data-index='${idx}']`);
+    cell.innerText = player;
+    cell.classList.add(player === "X" ? "text-primary" : "text-danger");
 
     checkWinner();
-    if (gameActive) saveGame(); // Save progress if game is still going
+    if (gameActive) saveGame(); 
 }
 
 function checkWinner() {
@@ -69,13 +136,12 @@ function checkWinner() {
     }
 
     if (roundWon) {
-        let winnerLabel = currentPlayer === userPiece ? "(You)" : "(Guest)";
+        let winnerLabel = currentPlayer === userPiece ? "(You)" : (gameMode === 'pvp' ? "(Guest)" : "(AI)");
         statusText.innerText = `Winner: ${currentPlayer} ${winnerLabel}!`;
         statusText.className = currentPlayer === userPiece ? "alert alert-success" : "alert alert-danger";
         gameActive = false;
         saveGame(true);
 
-        // Log a win if the logged-in user won, otherwise log a loss
         sendResultToServer(currentPlayer === userPiece ? 'win' : 'loss');
         return;
     }
@@ -89,20 +155,24 @@ function checkWinner() {
         return;
     }
 
-    // Switch turns for the next click
+    // Switch turns
     currentPlayer = currentPlayer === "X" ? "O" : "X";
     updateStatusDisplay();
+
+    // Trigger AI if it's the AI's turn
+    if (gameActive && gameMode === 'ai' && currentPlayer !== userPiece) {
+        fetchAiMove();
+    }
 }
 
-cells.forEach(cell => cell.addEventListener('click', handleCellClick));
-
-resetBtn.addEventListener('click', () => {
+// --- RESET LOGIC ---
+function resetBoard() {
     gameState = ["", "", "", "", "", "", "", "", ""];
     gameActive = true;
 
     // Re-randomize pieces on restart
     userPiece = Math.random() < 0.5 ? "X" : "O"; 
-    guestPiece = userPiece === "X" ? "O" : "X";
+    opponentPiece = userPiece === "X" ? "O" : "X";
     currentPlayer = "X"; 
 
     cells.forEach(cell => {
@@ -112,4 +182,12 @@ resetBtn.addEventListener('click', () => {
 
     updateStatusDisplay();
     saveGame();
-});
+
+    // If AI is 'X', it goes first immediately
+    if (gameMode === 'ai' && currentPlayer !== userPiece) {
+        fetchAiMove();
+    }
+}
+
+cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+resetBtn.addEventListener('click', resetBoard);
