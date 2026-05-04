@@ -26,6 +26,72 @@ app.use(express.static(path.join(__dirname, 'public')));
 const usersFile = path.join(__dirname, 'data', 'users.json');
 const gamesFile = path.join(__dirname, 'data', 'games.json');
 
+// --- MINIMAX ALGORITHM HELPERS (For Hard Mode) ---
+const winConditions = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
+];
+
+function getWinner(board) {
+    for (let condition of winConditions) {
+        let [a, b, c] = condition;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+            return board[a];
+        }
+    }
+    if (!board.includes("")) return "Draw";
+    return null;
+}
+
+function minimax(board, depth, isMaximizing, aiPiece, humanPiece) {
+    let result = getWinner(board);
+    if (result === aiPiece) return 10 - depth;
+    if (result === humanPiece) return depth - 10;
+    if (result === "Draw") return 0;
+
+    const emptyIndices = board.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
+
+    if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (let idx of emptyIndices) {
+            board[idx] = aiPiece;
+            let score = minimax(board, depth + 1, false, aiPiece, humanPiece);
+            board[idx] = "";
+            bestScore = Math.max(score, bestScore);
+        }
+        return bestScore;
+    } else {
+        let bestScore = Infinity;
+        for (let idx of emptyIndices) {
+            board[idx] = humanPiece;
+            let score = minimax(board, depth + 1, true, aiPiece, humanPiece);
+            board[idx] = "";
+            bestScore = Math.min(score, bestScore);
+        }
+        return bestScore;
+    }
+}
+
+function getBestMove(board, aiPiece) {
+    const humanPiece = aiPiece === "X" ? "O" : "X";
+    let bestScore = -Infinity;
+    let move = -1;
+    const emptyIndices = board.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
+
+    for (let idx of emptyIndices) {
+        board[idx] = aiPiece;
+        let score = minimax(board, 0, false, aiPiece, humanPiece);
+        board[idx] = "";
+        if (score > bestScore) {
+            bestScore = score;
+            move = idx;
+        }
+    }
+    return move;
+}
+// -------------------------------------------------
+
 // 2. ROUTES
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -63,43 +129,78 @@ app.post('/login', (req, res) => {
     }
 });
 
-// --- NEW: AI MOVE ROUTE ---
+// --- ROUTE 1: CALCULATE AI MOVE ---
 app.post('/ai-move', async (req, res) => {
-    const { board, aiPiece } = req.body;
+    const { board, aiPiece, difficulty } = req.body;
 
-    // 1. Find empty indices to tell the AI what moves are legal
     const emptyIndices = board.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
-
     if (emptyIndices.length === 0) return res.status(400).json({ error: "No moves left" });
+
+    let moveIndex;
+    let isFallbackMove = false; // Track if we fallback to random
+
+    if (difficulty === 'easy') {
+        moveIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+    } else if (difficulty === 'hard') {
+        moveIndex = getBestMove(board, aiPiece);
+    } else {
+        try {
+            const moveCompletion = await groq.chat.completions.create({
+                messages: [{
+                    role: "user", // Changed to user so Llama responds
+                    content: `You are a Tic-Tac-Toe engine playing as ${aiPiece}. The board indices are 0-8. Current board: ${JSON.stringify(board)}. Legal moves: ${emptyIndices.join(', ')}. Respond ONLY with a single integer from the legal moves list.`
+                }],
+                model: "llama3-8b-8192", 
+            });
+            let aiMove = moveCompletion.choices[0]?.message?.content.trim();
+            moveIndex = parseInt(aiMove);
+
+            // If Groq hallucinates a bad move, trigger fallback
+            if (isNaN(moveIndex) || !emptyIndices.includes(moveIndex)) {
+                moveIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+                isFallbackMove = true; 
+            }
+        } catch (error) {
+            console.error("Groq Move Error:", error);
+            // If the API crashes/rate-limits, trigger fallback
+            moveIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+            isFallbackMove = true; 
+        }
+    }
+
+    res.json({ move: moveIndex, isFallbackMove: isFallbackMove });
+});
+
+// --- ROUTE 2: GENERATE AI CHAT MESSAGE ---
+app.post('/ai-chat', async (req, res) => {
+    const { board, aiPiece, moveIndex, personality } = req.body;
+    let aiMessage = "Your move."; 
+    let isFallbackMessage = false; // Track if we fallback to hardcoded text
 
     try {
         const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                {
-                    role: "system",
-                    content: `You are a Tic-Tac-Toe engine playing as ${aiPiece}. The board indices are 0-8. Current board: ${JSON.stringify(board)}. Legal moves (empty indices) are: ${emptyIndices.join(', ')}. Respond ONLY with a single integer from the legal moves list. No explanation, no greeting, no punctuation.`
-                }
-            ],
-            model: "llama3-8b-8192", // Fast and efficient for logic tasks
+            messages: [{
+                role: "user", // Changed to user so Llama responds
+                content: `You are an AI playing Tic-Tac-Toe. Your personality is ${personality || 'competitive'}. The human player is playing as ${aiPiece === 'X' ? 'O' : 'X'} and you are ${aiPiece}. The board is a 3x3 grid (indices 0-8). It currently looks like this: ${JSON.stringify(board)}. You just confidently placed your piece on square ${moveIndex}. Write a short, one-sentence comment directly to the human player based on your personality. Keep it brief, no emojis, just pure attitude.`
+            }],
+            model: "llama3-8b-8192", 
         });
 
-        let aiMove = chatCompletion.choices[0]?.message?.content.trim();
-        let moveIndex = parseInt(aiMove);
+        let generatedMessage = chatCompletion.choices[0]?.message?.content.trim();
 
-        // --- VALIDATOR ---
-        // If AI hallucinates an occupied square or non-number, pick a random legal square as fallback
-        if (isNaN(moveIndex) || !emptyIndices.includes(moveIndex)) {
-            console.log(`AI Hallucinated: "${aiMove}". Falling back to random.`);
-            moveIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+        if (generatedMessage) {
+            aiMessage = generatedMessage;
+        } else {
+            isFallbackMessage = true;
         }
-
-        res.json({ move: moveIndex });
     } catch (error) {
-        console.error("Groq API Error:", error);
-        // Fallback if API is down or times out
-        const fallbackMove = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
-        res.json({ move: fallbackMove });
+        console.error("Groq Chat Error:", error);
+        // If the API crashes/rate-limits, trigger fallback
+        aiMessage = "I'm calculating my next victory.";
+        isFallbackMessage = true; 
     }
+
+    res.json({ message: aiMessage, isFallbackMessage: isFallbackMessage });
 });
 
 // --- SAVE GAME STATE ---
@@ -118,7 +219,7 @@ app.post('/save-game', (req, res) => {
 // --- UPDATE USER STATS ---
 app.post('/update-stats', (req, res) => {
     if (!req.session.username) return res.status(401).json({ error: "Unauthorized" });
-    const { result } = req.body; // 'win', 'loss', or 'draw'
+    const { result } = req.body; 
     const username = req.session.username;
 
     if (!fs.existsSync(usersFile)) return res.status(404).json({ error: "File not found" });

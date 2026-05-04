@@ -23,7 +23,35 @@
             </div>
 
             <div id="game-board-area" class="d-none">
+                
+                <div id="ai-settings" class="card shadow-sm mb-3 d-none">
+                    <div class="card-body p-2">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label for="difficulty-select" class="form-label mb-0 small text-muted fw-bold">Difficulty</label>
+                                <select id="difficulty-select" class="form-select form-select-sm">
+                                    <option value="easy">Easy</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="hard">Hard</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="personality-select" class="form-label mb-0 small text-muted fw-bold">Personality</label>
+                                <select id="personality-select" class="form-select form-select-sm">
+                                    <option value="friendly">Friendly</option>
+                                    <option value="competitive" selected>Competitive</option>
+                                    <option value="trash-talker">Trash Talker</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="status" class="alert alert-primary">Player X's Turn</div>
+
+                <div id="ai-chat-box" class="alert alert-secondary d-none text-start shadow-sm" role="alert">
+                    <strong>🤖 AI says:</strong> <span id="ai-chat-text" class="fst-italic text-dark">"I'm ready when you are."</span>
+                </div>
 
                 <div class="card shadow-sm mb-4">
                     <div class="card-body p-0">

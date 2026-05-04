@@ -10,6 +10,13 @@ const btnVsGuest = document.getElementById('btn-vs-guest');
 const btnVsAi = document.getElementById('btn-vs-ai');
 const menuBtn = document.getElementById('menu-btn');
 
+// AI Settings & Chat Elements
+const aiSettings = document.getElementById('ai-settings');
+const difficultySelect = document.getElementById('difficulty-select');
+const personalitySelect = document.getElementById('personality-select');
+const aiChatBox = document.getElementById('ai-chat-box');
+const aiChatText = document.getElementById('ai-chat-text');
+
 // Game State Variables
 let gameMode = 'pvp'; // 'pvp' or 'ai'
 let userPiece = Math.random() < 0.5 ? "X" : "O";
@@ -24,7 +31,7 @@ const winConditions = [
     [0, 4, 8], [2, 4, 6]
 ];
 
-// --- MENU LISTENERS ---
+// --- MENU & SETTINGS LISTENERS ---
 btnVsGuest.addEventListener('click', () => {
     gameMode = 'pvp';
     startGame();
@@ -41,10 +48,29 @@ menuBtn.addEventListener('click', () => {
     modeSelection.classList.remove('d-none');
 });
 
+// Auto-adjust personality based on difficulty selection
+difficultySelect.addEventListener('change', (e) => {
+    const diff = e.target.value;
+    if (diff === 'easy') personalitySelect.value = 'friendly';
+    else if (diff === 'normal') personalitySelect.value = 'competitive';
+    else if (diff === 'hard') personalitySelect.value = 'trash-talker';
+});
+
 // --- CORE GAME FUNCTIONS ---
 function startGame() {
     modeSelection.classList.add('d-none');
     gameBoardArea.classList.remove('d-none');
+
+    // Toggle AI specific UI
+    if (gameMode === 'ai') {
+        aiSettings.classList.remove('d-none');
+        aiChatBox.classList.remove('d-none');
+        aiChatText.innerText = `"I'm ready when you are."`;
+    } else {
+        aiSettings.classList.add('d-none');
+        aiChatBox.classList.add('d-none');
+    }
+
     resetBoard();
 }
 
@@ -82,23 +108,58 @@ async function sendResultToServer(gameResult) {
 async function fetchAiMove() {
     statusText.innerText = `AI is thinking...`;
     statusText.className = "alert alert-info";
+    aiChatText.innerText = "..."; // Show thinking indicator in chat
 
     try {
-        const response = await fetch('/ai-move', {
+        // STEP 1: Get the AI's move (Hidden from user)
+        const moveResponse = await fetch('/ai-move', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ board: gameState, aiPiece: currentPlayer })
+            body: JSON.stringify({ 
+                board: gameState, 
+                aiPiece: currentPlayer,
+                difficulty: difficultySelect.value
+            })
         });
 
-        const data = await response.json();
+        const moveData = await moveResponse.json();
+        const nextMove = moveData.move;
 
-        if (data.move !== undefined && gameActive) {
-            applyMove(data.move, currentPlayer);
+        // --- NEW: Log Fallback Move ---
+        if (moveData.isFallbackMove) {
+            console.warn("⚠️ AI Move Fallback Triggered: Used random square.");
+        }
+
+        if (nextMove !== undefined && gameActive) {
+
+            // STEP 2: Get the AI's message based on the move it just chose
+            const chatResponse = await fetch('/ai-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    board: gameState,
+                    aiPiece: currentPlayer,
+                    moveIndex: nextMove,
+                    personality: personalitySelect.value
+                })
+            });
+
+            const chatData = await chatResponse.json();
+
+            // --- NEW: Log Fallback Message ---
+            if (chatData.isFallbackMessage) {
+                console.warn("⚠️ AI Chat Fallback Triggered: Used hardcoded text.");
+            }
+
+            // STEP 3: The Big Reveal
+            aiChatText.innerText = `"${chatData.message || 'Your move.'}"`;
+            applyMove(nextMove, currentPlayer);
         }
     } catch (error) {
         console.error("Error fetching AI move:", error);
         statusText.innerText = "Error: AI disconnected.";
         statusText.className = "alert alert-danger";
+        aiChatText.innerText = `"Connection lost."`;
     }
 }
 
@@ -182,6 +243,10 @@ function resetBoard() {
 
     updateStatusDisplay();
     saveGame();
+
+    if (gameMode === 'ai') {
+        aiChatText.innerText = `"I'm ready when you are."`;
+    }
 
     // If AI is 'X', it goes first immediately
     if (gameMode === 'ai' && currentPlayer !== userPiece) {
