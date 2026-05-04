@@ -9,3 +9,7 @@
     border: 1px solid #dee2e6;
 }
 .cell:hover { background-color: #f8f9fa; }
+
+body {
+    background-color: lightblue;
+}
