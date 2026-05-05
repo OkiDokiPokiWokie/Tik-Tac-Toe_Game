@@ -1,4 +1,3 @@
-require('dotenv').config(); // Load the .env file for the API key
 const express = require('express');
 const session = require('express-session');
 const fs = require('fs');
@@ -8,7 +7,7 @@ const Groq = require('groq-sdk'); // Import Groq SDK
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize Groq with your API Key
+// Initialize Groq with your API Key (Automatically injected by Replit Secrets)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // 1. MIDDLEWARE
@@ -150,7 +149,7 @@ app.post('/ai-move', async (req, res) => {
                     role: "user", // Changed to user so Llama responds
                     content: `You are a Tic-Tac-Toe engine playing as ${aiPiece}. The board indices are 0-8. Current board: ${JSON.stringify(board)}. Legal moves: ${emptyIndices.join(', ')}. Respond ONLY with a single integer from the legal moves list.`
                 }],
-                model: "llama3-8b-8192", 
+                model: "llama-3.1-8b-instant", 
             });
             let aiMove = moveCompletion.choices[0]?.message?.content.trim();
             moveIndex = parseInt(aiMove);
@@ -183,7 +182,7 @@ app.post('/ai-chat', async (req, res) => {
                 role: "user", // Changed to user so Llama responds
                 content: `You are an AI playing Tic-Tac-Toe. Your personality is ${personality || 'competitive'}. The human player is playing as ${aiPiece === 'X' ? 'O' : 'X'} and you are ${aiPiece}. The board is a 3x3 grid (indices 0-8). It currently looks like this: ${JSON.stringify(board)}. You just confidently placed your piece on square ${moveIndex}. Write a short, one-sentence comment directly to the human player based on your personality. Keep it brief, no emojis, just pure attitude.`
             }],
-            model: "llama3-8b-8192", 
+            model: "llama-3.1-8b-instant", // <-- THIS IS THE UPDATED LINE
         });
 
         let generatedMessage = chatCompletion.choices[0]?.message?.content.trim();

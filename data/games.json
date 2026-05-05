@@ -3,16 +3,16 @@
     "board": [
       "",
       "",
-      "",
-      "",
       "X",
+      "",
+      "O",
       "",
       "",
       "",
       ""
     ],
-    "turn": "O",
+    "turn": "X",
     "gameOver": false,
-    "userPiece": "O"
+    "userPiece": "X"
   }
 }
