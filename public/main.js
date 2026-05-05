@@ -97,10 +97,23 @@ async function saveGame(gameOver = false) {
 
 // Helper to update persistent stats
 async function sendResultToServer(gameResult) {
+    // 1. Build the data payload
+    const payload = {
+        result: gameResult,
+        gameMode: gameMode
+    };
+
+    // 2. If it was an AI match, include the AI's specific settings
+    if (gameMode === 'ai') {
+        payload.difficulty = difficultySelect.value;
+        payload.personality = personalitySelect.value;
+    }
+
+    // 3. Send it all to the server
     await fetch('/update-stats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ result: gameResult })
+        body: JSON.stringify(payload)
     });
 }
 

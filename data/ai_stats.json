@@ -1,0 +1,14 @@
+{
+  "normal": {
+    "competitive": {
+      "wins": 0,
+      "losses": 1,
+      "draws": 0
+    },
+    "friendly": {
+      "wins": 0,
+      "losses": 1,
+      "draws": 0
+    }
+  }
+}
