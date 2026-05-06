@@ -10,20 +10,21 @@ const btnVsGuest = document.getElementById('btn-vs-guest');
 const btnVsAi = document.getElementById('btn-vs-ai');
 const menuBtn = document.getElementById('menu-btn');
 
-// AI Settings & Chat Elements
+// AI Settings & Log Elements
 const aiSettings = document.getElementById('ai-settings');
 const difficultySelect = document.getElementById('difficulty-select');
 const personalitySelect = document.getElementById('personality-select');
-const aiChatBox = document.getElementById('ai-chat-box');
-const aiChatText = document.getElementById('ai-chat-text');
+const aiLogColumn = document.getElementById('ai-log-column');
+const groqLog = document.getElementById('groq-log');
 
 // Game State Variables
-let gameMode = 'pvp'; // 'pvp' or 'ai'
+let gameMode = 'pvp'; 
 let userPiece = Math.random() < 0.5 ? "X" : "O";
 let opponentPiece = userPiece === "X" ? "O" : "X";
-let currentPlayer = "X"; // X always goes first
+let currentPlayer = "X"; 
 let gameState = ["", "", "", "", "", "", "", "", ""];
-let gameActive = false; // Starts false until a mode is selected
+let gameActive = false; 
+let turnCounter = 1;
 
 const winConditions = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -48,7 +49,6 @@ menuBtn.addEventListener('click', () => {
     modeSelection.classList.remove('d-none');
 });
 
-// Auto-adjust personality based on difficulty selection
 difficultySelect.addEventListener('change', (e) => {
     const diff = e.target.value;
     if (diff === 'easy') personalitySelect.value = 'friendly';
@@ -56,19 +56,42 @@ difficultySelect.addEventListener('change', (e) => {
     else if (diff === 'hard') personalitySelect.value = 'trash-talker';
 });
 
+// --- THE GROQ LOG HELPER ---
+function addToGroqLog(message, personality) {
+    if (!groqLog) return;
+
+    const entry = document.createElement('div');
+    entry.className = `log-entry personality-${personality}`;
+
+    // Add turn label for context
+    const label = document.createElement('span');
+    label.className = 'turn-label';
+    label.innerText = `Turn ${turnCounter} - ${personality.replace('-', ' ')}`;
+
+    const text = document.createElement('span');
+    text.innerText = message;
+
+    entry.appendChild(label);
+    entry.appendChild(text);
+    groqLog.appendChild(entry);
+
+    // Auto-scroll to the bottom
+    groqLog.scrollTop = groqLog.scrollHeight;
+}
+
 // --- CORE GAME FUNCTIONS ---
 function startGame() {
     modeSelection.classList.add('d-none');
     gameBoardArea.classList.remove('d-none');
 
-    // Toggle AI specific UI
     if (gameMode === 'ai') {
         aiSettings.classList.remove('d-none');
-        aiChatBox.classList.remove('d-none');
-        aiChatText.innerText = `"I'm ready when you are."`;
+        aiLogColumn.classList.remove('d-none');
+        // Initial greeting
+        addToGroqLog("I'm ready when you are. Good luck.", personalitySelect.value);
     } else {
         aiSettings.classList.add('d-none');
-        aiChatBox.classList.add('d-none');
+        aiLogColumn.classList.add('d-none');
     }
 
     resetBoard();
@@ -86,7 +109,6 @@ function updateStatusDisplay() {
     statusText.className = "alert alert-primary";
 }
 
-// Helper to save current state to server
 async function saveGame(gameOver = false) {
     await fetch('/save-game', {
         method: 'POST',
@@ -95,21 +117,17 @@ async function saveGame(gameOver = false) {
     });
 }
 
-// Helper to update persistent stats
 async function sendResultToServer(gameResult) {
-    // 1. Build the data payload
     const payload = {
         result: gameResult,
         gameMode: gameMode
     };
 
-    // 2. If it was an AI match, include the AI's specific settings
     if (gameMode === 'ai') {
         payload.difficulty = difficultySelect.value;
         payload.personality = personalitySelect.value;
     }
 
-    // 3. Send it all to the server
     await fetch('/update-stats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,10 +139,8 @@ async function sendResultToServer(gameResult) {
 async function fetchAiMove() {
     statusText.innerText = `AI is thinking...`;
     statusText.className = "alert alert-info";
-    aiChatText.innerText = "..."; // Show thinking indicator in chat
 
     try {
-        // STEP 1: Get the AI's move (Hidden from user)
         const moveResponse = await fetch('/ai-move', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -138,14 +154,7 @@ async function fetchAiMove() {
         const moveData = await moveResponse.json();
         const nextMove = moveData.move;
 
-        // --- NEW: Log Fallback Move ---
-        if (moveData.isFallbackMove) {
-            console.warn("⚠️ AI Move Fallback Triggered: Used random square.");
-        }
-
         if (nextMove !== undefined && gameActive) {
-
-            // STEP 2: Get the AI's message based on the move it just chose
             const chatResponse = await fetch('/ai-chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -159,28 +168,21 @@ async function fetchAiMove() {
 
             const chatData = await chatResponse.json();
 
-            // --- NEW: Log Fallback Message ---
-            if (chatData.isFallbackMessage) {
-                console.warn("⚠️ AI Chat Fallback Triggered: Used hardcoded text.");
-            }
+            // Add AI response to the Live Log
+            addToGroqLog(chatData.message || "Your turn.", personalitySelect.value);
 
-            // STEP 3: The Big Reveal
-            aiChatText.innerText = `"${chatData.message || 'Your move.'}"`;
             applyMove(nextMove, currentPlayer);
         }
     } catch (error) {
         console.error("Error fetching AI move:", error);
         statusText.innerText = "Error: AI disconnected.";
         statusText.className = "alert alert-danger";
-        aiChatText.innerText = `"Connection lost."`;
     }
 }
 
 // --- MOVE LOGIC ---
 function handleCellClick(e) {
     if (!gameActive) return;
-
-    // If it's AI mode, block clicks when it is the AI's turn
     if (gameMode === 'ai' && currentPlayer !== userPiece) return;
 
     const idx = e.target.getAttribute('data-index');
@@ -195,6 +197,7 @@ function applyMove(idx, player) {
     cell.innerText = player;
     cell.classList.add(player === "X" ? "text-primary" : "text-danger");
 
+    turnCounter++;
     checkWinner();
     if (gameActive) saveGame(); 
 }
@@ -216,6 +219,12 @@ function checkWinner() {
         gameActive = false;
         saveGame(true);
 
+        if (gameMode === 'ai' && currentPlayer !== userPiece) {
+            addToGroqLog("Victory is mine! Better luck next time.", personalitySelect.value);
+        } else if (gameMode === 'ai') {
+            addToGroqLog("Impossible... You must have cheated.", personalitySelect.value);
+        }
+
         sendResultToServer(currentPlayer === userPiece ? 'win' : 'loss');
         return;
     }
@@ -225,15 +234,14 @@ function checkWinner() {
         statusText.className = "alert alert-warning";
         gameActive = false;
         saveGame(true);
+        if (gameMode === 'ai') addToGroqLog("A stalemate. How boring.", personalitySelect.value);
         sendResultToServer('draw');
         return;
     }
 
-    // Switch turns
     currentPlayer = currentPlayer === "X" ? "O" : "X";
     updateStatusDisplay();
 
-    // Trigger AI if it's the AI's turn
     if (gameActive && gameMode === 'ai' && currentPlayer !== userPiece) {
         fetchAiMove();
     }
@@ -243,8 +251,13 @@ function checkWinner() {
 function resetBoard() {
     gameState = ["", "", "", "", "", "", "", "", ""];
     gameActive = true;
+    turnCounter = 1;
 
-    // Re-randomize pieces on restart
+    // Clear the visual log
+    if (groqLog) {
+        groqLog.innerHTML = '<div class="text-muted small text-center mb-2 italic">--- New Match Started ---</div>';
+    }
+
     userPiece = Math.random() < 0.5 ? "X" : "O"; 
     opponentPiece = userPiece === "X" ? "O" : "X";
     currentPlayer = "X"; 
@@ -257,11 +270,6 @@ function resetBoard() {
     updateStatusDisplay();
     saveGame();
 
-    if (gameMode === 'ai') {
-        aiChatText.innerText = `"I'm ready when you are."`;
-    }
-
-    // If AI is 'X', it goes first immediately
     if (gameMode === 'ai' && currentPlayer !== userPiece) {
         fetchAiMove();
     }

@@ -17,10 +17,10 @@
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
+        <div class="col-lg-10 text-center">
             <h1 class="display-4 mb-4">Tic-Tac-Toe</h1>
 
-            <div id="mode-selection" class="card shadow-sm mb-4 p-4">
+            <div id="mode-selection" class="card shadow-sm mb-4 p-4 mx-auto" style="max-width: 500px;">
                 <h3 class="mb-3">Select Game Mode</h3>
                 <div class="d-grid gap-3">
                     <button id="btn-vs-guest" class="btn btn-primary btn-lg">Play vs Guest (Hotseat)</button>
@@ -29,61 +29,72 @@
             </div>
 
             <div id="game-board-area" class="d-none">
-                
-                <div id="ai-settings" class="card shadow-sm mb-3 d-none">
-                    <div class="card-body p-2">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <label for="difficulty-select" class="form-label mb-0 small text-muted fw-bold">Difficulty</label>
-                                <select id="difficulty-select" class="form-select form-select-sm">
-                                    <option value="easy">Easy</option>
-                                    <option value="normal" selected>Normal</option>
-                                    <option value="hard">Hard</option>
-                                </select>
+                <div class="row g-4 justify-content-center">
+                    
+                    <div class="col-md-6 col-lg-5">
+                        <div id="ai-settings" class="card shadow-sm mb-3 d-none">
+                            <div class="card-body p-2">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="difficulty-select" class="form-label mb-0 small text-muted fw-bold">Difficulty</label>
+                                        <select id="difficulty-select" class="form-select form-select-sm">
+                                            <option value="easy">Easy</option>
+                                            <option value="normal" selected>Normal</option>
+                                            <option value="hard">Hard</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="personality-select" class="form-label mb-0 small text-muted fw-bold">Personality</label>
+                                        <select id="personality-select" class="form-select form-select-sm">
+                                            <option value="friendly">Friendly</option>
+                                            <option value="competitive" selected>Competitive</option>
+                                            <option value="trash-talker">Trash Talker</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-6">
-                                <label for="personality-select" class="form-label mb-0 small text-muted fw-bold">Personality</label>
-                                <select id="personality-select" class="form-select form-select-sm">
-                                    <option value="friendly">Friendly</option>
-                                    <option value="competitive" selected>Competitive</option>
-                                    <option value="trash-talker">Trash Talker</option>
-                                </select>
+                        </div>
+
+                        <div id="status" class="alert alert-primary mb-3">Player X's Turn</div>
+
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body p-0">
+                                <div class="row g-0">
+                                    <div class="col-4 cell" data-index="0"></div>
+                                    <div class="col-4 cell" data-index="1"></div>
+                                    <div class="col-4 cell" data-index="2"></div>
+                                </div>
+                                <div class="row g-0">
+                                    <div class="col-4 cell" data-index="3"></div>
+                                    <div class="col-4 cell" data-index="4"></div>
+                                    <div class="col-4 cell" data-index="5"></div>
+                                </div>
+                                <div class="row g-0">
+                                    <div class="col-4 cell" data-index="6"></div>
+                                    <div class="col-4 cell" data-index="7"></div>
+                                    <div class="col-4 cell" data-index="8"></div>
+                                </div>
                             </div>
+                        </div>
+
+                        <button id="reset-btn" class="btn btn-outline-danger w-100 mb-2">Restart Match</button>
+                        <button id="menu-btn" class="btn btn-outline-secondary w-100">Back to Menu</button>
+                    </div>
+
+                    <div id="ai-log-column" class="col-md-6 col-lg-5 d-none">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-dark text-white fw-bold d-flex align-items-center justify-content-between">
+                                <span>🤖 Live AI Feed</span>
+                                <span class="badge bg-success">Online</span>
+                            </div>
+                            <div id="groq-log" class="card-body bg-white text-start p-3" style="height: 400px; overflow-y: auto;">
+                                <div class="text-muted small text-center mb-2 italic">--- Game Started ---</div>
+                                </div>
                         </div>
                     </div>
+
                 </div>
-
-                <div id="status" class="alert alert-primary">Player X's Turn</div>
-
-                <div id="ai-chat-box" class="alert alert-secondary d-none text-start shadow-sm" role="alert">
-                    <strong>🤖 AI says:</strong> <span id="ai-chat-text" class="fst-italic text-dark">"I'm ready when you are."</span>
-                </div>
-
-                <div class="card shadow-sm mb-4">
-                    <div class="card-body p-0">
-                        <div class="row g-0">
-                            <div class="col-4 cell" data-index="0"></div>
-                            <div class="col-4 cell" data-index="1"></div>
-                            <div class="col-4 cell" data-index="2"></div>
-                        </div>
-                        <div class="row g-0">
-                            <div class="col-4 cell" data-index="3"></div>
-                            <div class="col-4 cell" data-index="4"></div>
-                            <div class="col-4 cell" data-index="5"></div>
-                        </div>
-                        <div class="row g-0">
-                            <div class="col-4 cell" data-index="6"></div>
-                            <div class="col-4 cell" data-index="7"></div>
-                            <div class="col-4 cell" data-index="8"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <button id="reset-btn" class="btn btn-outline-danger w-100 mb-2">Restart Match</button>
-                <button id="menu-btn" class="btn btn-outline-secondary w-100">Back to Menu</button>
-            </div>
-
-        </div>
+            </div> </div>
     </div>
 </div>
 

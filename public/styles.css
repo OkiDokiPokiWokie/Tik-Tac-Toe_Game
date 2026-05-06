@@ -1,15 +1,108 @@
-/* Small custom tweak for square cells since Bootstrap doesn't have a 'square' class */
+/* --- Game Board Styles --- */
 .cell {
-    height: 100px;
-    font-size: 2.5rem;
+    height: 120px; /* Slightly taller for a better look */
+    font-size: 3rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid #dee2e6;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    background-color: white;
 }
-.cell:hover { background-color: #f8f9fa; }
 
+.cell:hover {
+    background-color: #f1f3f5;
+    transform: scale(1.02);
+    z-index: 1;
+}
+
+/* --- The Groq Log (Chat Feed) --- */
+#groq-log {
+    background-color: #fdfdfd;
+    border-radius: 4px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Individual Log Entries */
+.log-entry {
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 90%;
+    animation: slideIn 0.3s ease-out;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.turn-label {
+    font-weight: bold;
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    opacity: 0.7;
+}
+
+/* --- Personality Variations --- */
+.personality-friendly {
+    background-color: #e7f3ff;
+    color: #0056b3;
+    border-left: 4px solid #007bff;
+    align-self: flex-start;
+}
+
+.personality-competitive {
+    background-color: #f3e8ff;
+    color: #6f42c1;
+    border-left: 4px solid #8e44ad;
+    align-self: flex-start;
+}
+
+.personality-trash-talker {
+    background-color: #fff0f0;
+    color: #c0392b;
+    border-left: 4px solid #e74c3c;
+    align-self: flex-start;
+    font-weight: 500;
+}
+
+/* --- Scrollbar Polish --- */
+#groq-log::-webkit-scrollbar {
+    width: 6px;
+}
+
+#groq-log::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#groq-log::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+#groq-log::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* --- Animations --- */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- General Theme --- */
 body {
-    background-color: lightblue;
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    min-height: 100vh;
 }

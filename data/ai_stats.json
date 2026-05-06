@@ -2,10 +2,15 @@
   "normal": {
     "competitive": {
       "wins": 0,
-      "losses": 1,
+      "losses": 2,
       "draws": 0
     },
     "friendly": {
+      "wins": 0,
+      "losses": 2,
+      "draws": 0
+    },
+    "trash-talker": {
       "wins": 0,
       "losses": 1,
       "draws": 0
