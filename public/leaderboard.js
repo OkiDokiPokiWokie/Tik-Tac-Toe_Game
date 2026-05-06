@@ -1,90 +1,86 @@
-document.addEventListener("DOMContentLoaded", () => {
-  loadLeaderboard();
-  loadAIStats();
-});
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe Stats & Leaderboard</title>
+    <link href="bootstrap-5.3.8-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 
-async function loadLeaderboard() {
-  try {
-      const response = await fetch('/leaderboard-data');
-      const users = await response.json();
-      const tbody = document.getElementById('leaderboard-body');
-      tbody.innerHTML = '';
+    <script>
+        const savedTheme = localStorage.getItem('tictactoe-theme') || 'classic';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 
-      if (users.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center">No players yet. Go play a game!</td></tr>';
-          return;
-      }
+    <style>
+        body {
+            padding-top: 2rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            background-color: var(--bg-color, #f8f9fa);
+            color: var(--text-color, #212529);
+        }
+        .themed-container {
+            background-color: var(--card-bg, #ffffff);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .theme-table {
+            color: var(--text-color, #212529) !important;
+        }
+        .theme-table thead th {
+            background-color: var(--table-header-bg, #212529);
+            color: var(--table-header-text, #ffffff);
+        }
+    </style>
+</head>
+<body data-theme="classic">
 
-      // Sort users by highest wins
-      users.sort((a, b) => b.stats.wins - a.stats.wins);
+<div class="container themed-container shadow-sm mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h1 class="title-text">🏆 Stats & Leaderboard</h1>
+        <a href="/game.html" class="btn btn-outline-primary theme-btn">Back to Game</a>
+    </div>
 
-      users.forEach((user, index) => {
-          const totalGames = user.stats.wins + user.stats.losses + user.stats.draws;
-          const winRate = totalGames > 0 ? ((user.stats.wins / totalGames) * 100).toFixed(1) + '%' : '0%';
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <h3 class="mb-3">🤖 AI Performance</h3>
+            <div id="ai-stats-container">
+                <div class="text-center mt-5">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                    Loading AI Data...
+                </div>
+            </div>
+        </div>
 
-          tbody.innerHTML += `
-              <tr>
-                  <td><strong>#${index + 1}</strong></td>
-                  <td>${user.username}</td>
-                  <td class="text-success">${user.stats.wins}</td>
-                  <td class="text-danger">${user.stats.losses}</td>
-                  <td class="text-secondary">${user.stats.draws}</td>
-                  <td class="fw-bold">${winRate}</td>
-              </tr>
-          `;
-      });
-  } catch (error) {
-      console.error("Error fetching leaderboard:", error);
-      document.getElementById('leaderboard-body').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load data.</td></tr>';
-  }
-}
+        <div class="col-md-6 mb-4">
+            <h3 class="mb-3">🌍 Global Leaderboard</h3>
+            <div class="table-responsive shadow-sm rounded">
+                <table class="table theme-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>W</th>
+                            <th>L</th>
+                            <th>D</th>
+                            <th>Win %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                <div class="spinner-border spinner-border-sm" role="status"></div>
+                                Loading Leaderboard...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-async function loadAIStats() {
-  try {
-      const response = await fetch('/ai-stats-data');
-      const aiData = await response.json();
-      const container = document.getElementById('ai-stats-container');
-      container.innerHTML = '';
-
-      if (Object.keys(aiData).length === 0) {
-          container.innerHTML = '<div class="alert alert-info">No AI games have been played yet.</div>';
-          return;
-      }
-
-      // Loop through Difficulties (Easy, Hard, Llama)
-      for (const difficulty in aiData) {
-          let diffHtml = `<h5 class="mt-4 text-uppercase text-primary border-bottom pb-1">${difficulty}</h5>`;
-          const personalities = aiData[difficulty];
-
-          // Loop through Personalities within that Difficulty
-          for (const personality in personalities) {
-              const stats = personalities[personality];
-              const totalGames = stats.wins + stats.losses + stats.draws;
-              const winRate = totalGames > 0 ? ((stats.wins / totalGames) * 100).toFixed(1) + '%' : '0%';
-
-              diffHtml += `
-                  <div class="card stat-card shadow-sm mb-3">
-                      <div class="card-body d-flex justify-content-between align-items-center">
-                          <div>
-                              <h6 class="card-title text-capitalize mb-1">${personality} Personality</h6>
-                              <small class="text-muted">
-                                  <span class="text-success fw-bold">W: ${stats.wins}</span> | 
-                                  <span class="text-danger">L: ${stats.losses}</span> | 
-                                  <span class="text-secondary">D: ${stats.draws}</span>
-                              </small>
-                          </div>
-                          <div class="text-end">
-                              <span class="badge bg-primary fs-6">${winRate} Win Rate</span><br>
-                              <small class="text-muted" style="font-size: 0.75rem;">Total Games: ${totalGames}</small>
-                          </div>
-                      </div>
-                  </div>
-              `;
-          }
-          container.innerHTML += diffHtml;
-      }
-  } catch (error) {
-      console.error("Error fetching AI stats:", error);
-      document.getElementById('ai-stats-container').innerHTML = '<div class="alert alert-danger">Failed to load AI data.</div>';
-  }
-}
+<script src="bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+<script src="leaderboard.js"></script>
+</body>
+</html>

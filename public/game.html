@@ -7,7 +7,7 @@
     <link href="bootstrap-5.3.8-dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-light">
+<body class="bg-light" data-theme="classic">
 
 <div class="position-absolute top-0 end-0 p-3">
     <a href="/leaderboard.html" class="btn btn-dark shadow-sm">
@@ -18,7 +18,7 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-10 text-center">
-            <h1 class="display-4 mb-4">Tic-Tac-Toe</h1>
+            <h1 class="display-4 mb-4 title-text">Tic-Tac-Toe</h1>
 
             <div id="mode-selection" class="card shadow-sm mb-4 p-4 mx-auto" style="max-width: 500px;">
                 <h3 class="mb-3">Select Game Mode</h3>
@@ -32,6 +32,22 @@
                 <div class="row g-4 justify-content-center">
                     
                     <div class="col-md-6 col-lg-5">
+                        
+                        <div id="global-settings" class="card shadow-sm mb-2">
+                            <div class="card-body p-2">
+                                <div class="row g-2 justify-content-center">
+                                    <div class="col-12">
+                                        <label for="theme-select" class="form-label mb-0 small text-muted fw-bold">Game Theme</label>
+                                        <select id="theme-select" class="form-select form-select-sm text-center">
+                                            <option value="classic" selected>Classic (Blue & Red)</option>
+                                            <option value="neon">Neon Night (Dark Mode)</option>
+                                            <option value="emoji">Emoji Mode (🔥 vs ❄️)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div id="ai-settings" class="card shadow-sm mb-3 d-none">
                             <div class="card-body p-2">
                                 <div class="row g-2">
@@ -57,7 +73,7 @@
 
                         <div id="status" class="alert alert-primary mb-3">Player X's Turn</div>
 
-                        <div class="card shadow-sm mb-4">
+                        <div class="card shadow-sm mb-4 board-card">
                             <div class="card-body p-0">
                                 <div class="row g-0">
                                     <div class="col-4 cell" data-index="0"></div>
@@ -82,19 +98,20 @@
                     </div>
 
                     <div id="ai-log-column" class="col-md-6 col-lg-5 d-none">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-header bg-dark text-white fw-bold d-flex align-items-center justify-content-between">
+                        <div class="card shadow-sm h-100 log-card">
+                            <div class="card-header bg-dark text-white fw-bold d-flex align-items-center justify-content-between log-header">
                                 <span>🤖 Live AI Feed</span>
                                 <span class="badge bg-success">Online</span>
                             </div>
                             <div id="groq-log" class="card-body bg-white text-start p-3" style="height: 400px; overflow-y: auto;">
                                 <div class="text-muted small text-center mb-2 italic">--- Game Started ---</div>
-                                </div>
+                            </div>
                         </div>
                     </div>
 
                 </div>
-            </div> </div>
+            </div> 
+        </div>
     </div>
 </div>
 

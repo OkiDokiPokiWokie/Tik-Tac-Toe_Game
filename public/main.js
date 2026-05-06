@@ -17,6 +17,9 @@ const personalitySelect = document.getElementById('personality-select');
 const aiLogColumn = document.getElementById('ai-log-column');
 const groqLog = document.getElementById('groq-log');
 
+// Theme Element
+const themeSelect = document.getElementById('theme-select'); // NEW
+
 // Game State Variables
 let gameMode = 'pvp'; 
 let userPiece = Math.random() < 0.5 ? "X" : "O";
@@ -31,6 +34,36 @@ const winConditions = [
     [0, 3, 6], [1, 4, 7], [2, 5, 8],
     [0, 4, 8], [2, 4, 6]
 ];
+
+// --- THEME ENGINE INITIALIZATION ---
+const savedTheme = localStorage.getItem('tictactoe-theme') || 'classic';
+document.documentElement.setAttribute('data-theme', savedTheme);
+if (themeSelect) themeSelect.value = savedTheme;
+
+themeSelect.addEventListener('change', (e) => {
+    const newTheme = e.target.value;
+    localStorage.setItem('tictactoe-theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    updateBoardDisplay(); // Refresh the board in case we switched to/from Emoji mode mid-game
+});
+
+// Helper to swap X/O with Emojis if the theme is active
+function getPieceDisplay(piece) {
+    if (!piece) return "";
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    if (currentTheme === 'emoji') {
+        return piece === "X" ? "🔥" : "❄️";
+    }
+    return piece;
+}
+
+// Refreshes the board visual without changing the game state array
+function updateBoardDisplay() {
+    cells.forEach((cell, index) => {
+        cell.innerText = getPieceDisplay(gameState[index]);
+    });
+    updateStatusDisplay();
+}
 
 // --- MENU & SETTINGS LISTENERS ---
 btnVsGuest.addEventListener('click', () => {
@@ -63,7 +96,6 @@ function addToGroqLog(message, personality) {
     const entry = document.createElement('div');
     entry.className = `log-entry personality-${personality}`;
 
-    // Add turn label for context
     const label = document.createElement('span');
     label.className = 'turn-label';
     label.innerText = `Turn ${turnCounter} - ${personality.replace('-', ' ')}`;
@@ -75,7 +107,6 @@ function addToGroqLog(message, personality) {
     entry.appendChild(text);
     groqLog.appendChild(entry);
 
-    // Auto-scroll to the bottom
     groqLog.scrollTop = groqLog.scrollHeight;
 }
 
@@ -87,7 +118,6 @@ function startGame() {
     if (gameMode === 'ai') {
         aiSettings.classList.remove('d-none');
         aiLogColumn.classList.remove('d-none');
-        // Initial greeting
         addToGroqLog("I'm ready when you are. Good luck.", personalitySelect.value);
     } else {
         aiSettings.classList.add('d-none');
@@ -105,7 +135,8 @@ function updateStatusDisplay() {
     } else {
         playerLabel = gameMode === 'pvp' ? "(Guest)" : "(AI)";
     }
-    statusText.innerText = `Turn: ${currentPlayer} ${playerLabel}`;
+    // Updated to show Emojis in status text if active
+    statusText.innerText = `Turn: ${getPieceDisplay(currentPlayer)} ${playerLabel}`;
     statusText.className = "alert alert-primary";
 }
 
@@ -168,7 +199,6 @@ async function fetchAiMove() {
 
             const chatData = await chatResponse.json();
 
-            // Add AI response to the Live Log
             addToGroqLog(chatData.message || "Your turn.", personalitySelect.value);
 
             applyMove(nextMove, currentPlayer);
@@ -194,7 +224,9 @@ function handleCellClick(e) {
 function applyMove(idx, player) {
     gameState[idx] = player;
     const cell = document.querySelector(`.cell[data-index='${idx}']`);
-    cell.innerText = player;
+
+    // Updated to use the display piece (Emoji or X/O)
+    cell.innerText = getPieceDisplay(player); 
     cell.classList.add(player === "X" ? "text-primary" : "text-danger");
 
     turnCounter++;
@@ -214,7 +246,8 @@ function checkWinner() {
 
     if (roundWon) {
         let winnerLabel = currentPlayer === userPiece ? "(You)" : (gameMode === 'pvp' ? "(Guest)" : "(AI)");
-        statusText.innerText = `Winner: ${currentPlayer} ${winnerLabel}!`;
+        // Updated to show Emojis in winner text if active
+        statusText.innerText = `Winner: ${getPieceDisplay(currentPlayer)} ${winnerLabel}!`;
         statusText.className = currentPlayer === userPiece ? "alert alert-success" : "alert alert-danger";
         gameActive = false;
         saveGame(true);
@@ -253,7 +286,6 @@ function resetBoard() {
     gameActive = true;
     turnCounter = 1;
 
-    // Clear the visual log
     if (groqLog) {
         groqLog.innerHTML = '<div class="text-muted small text-center mb-2 italic">--- New Match Started ---</div>';
     }

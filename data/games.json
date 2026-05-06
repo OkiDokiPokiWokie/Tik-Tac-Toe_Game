@@ -1,18 +1,18 @@
 {
   "user": {
     "board": [
-      "",
-      "",
+      "X",
       "",
       "",
       "",
       "X",
+      "O",
       "",
-      "",
-      ""
+      "O",
+      "X"
     ],
-    "turn": "O",
-    "gameOver": false,
-    "userPiece": "O"
+    "turn": "X",
+    "gameOver": true,
+    "userPiece": "X"
   }
 }

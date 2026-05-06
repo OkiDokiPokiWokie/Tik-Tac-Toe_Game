@@ -1,25 +1,122 @@
-/* --- Game Board Styles --- */
+/* =========================================
+   THEME ENGINE VARIABLES
+========================================= */
+
+/* 1. Classic Theme (Default) */
+:root, [data-theme="classic"] {
+    --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+    --card-bg: #ffffff;
+    --cell-bg: #ffffff;
+    --cell-hover: #f1f3f5;
+    --cell-border: #dee2e6;
+    --table-header-bg: #212529;
+    --table-header-text: #ffffff;
+    --player-x-color: #0d6efd; /* Bootstrap Primary Blue */
+    --player-o-color: #dc3545; /* Bootstrap Danger Red */
+    --piece-shadow: none;
+    --cell-shadow: none;
+}
+
+/* 2. Neon Night Theme (Dark Mode) */
+[data-theme="neon"] {
+    --bg-gradient: linear-gradient(135deg, #0b0c10 0%, #1f2833 100%);
+    --bg-color: #0b0c10;
+    --text-color: #c5c6c7;
+    --card-bg: #1f2833;
+    --cell-bg: #1f2833;
+    --cell-hover: #2b3744;
+    --cell-border: #45a29e;
+    --table-header-bg: #66fcf1;
+    --table-header-text: #0b0c10;
+    --player-x-color: #ff00ff; /* Neon Pink */
+    --player-o-color: #00ffff; /* Neon Cyan */
+    --piece-shadow: 0 0 15px currentColor;
+    --cell-shadow: inset 0 0 10px rgba(69, 162, 158, 0.2);
+}
+
+/* 3. Emoji Mode Theme (Warm Vibe) */
+[data-theme="emoji"] {
+    --bg-gradient: linear-gradient(135deg, #ffedea 0%, #ffdad4 100%);
+    --bg-color: #fff3e0;
+    --text-color: #3e2723;
+    --card-bg: #ffffff;
+    --cell-bg: #ffffff;
+    --cell-hover: #fff8e1;
+    --cell-border: #ffb74d;
+    --table-header-bg: #ff5722;
+    --table-header-text: #ffffff;
+    --player-x-color: #212529; 
+    --player-o-color: #212529;
+    --piece-shadow: none;
+    --cell-shadow: none;
+}
+
+/* =========================================
+   BASE STYLES & OVERRIDES
+========================================= */
+body {
+    background: var(--bg-gradient);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* Make Bootstrap Cards inherit our theme backgrounds */
+.card, .modal-content, .themed-container {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+    transition: background-color 0.4s ease, color 0.4s ease;
+    border: none;
+}
+
+/* Title text colors */
+h1, h2, h3, h4, h5, h6, .title-text {
+    color: var(--text-color) !important;
+}
+
+
+/* =========================================
+   GAME BOARD STYLES
+========================================= */
 .cell {
-    height: 120px; /* Slightly taller for a better look */
+    height: 120px;
     font-size: 3rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #dee2e6;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    background-color: white;
+    border: 1px solid var(--cell-border);
+    background-color: var(--cell-bg);
+    box-shadow: var(--cell-shadow);
+    transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.4s ease;
 }
 
 .cell:hover {
-    background-color: #f1f3f5;
+    background-color: var(--cell-hover);
     transform: scale(1.02);
     z-index: 1;
 }
 
-/* --- The Groq Log (Chat Feed) --- */
+/* Override standard text colors with theme colors */
+.cell.text-primary {
+    color: var(--player-x-color) !important;
+    text-shadow: var(--piece-shadow);
+}
+
+.cell.text-danger {
+    color: var(--player-o-color) !important;
+    text-shadow: var(--piece-shadow);
+}
+
+
+/* =========================================
+   THE GROQ LOG (CHAT FEED)
+========================================= */
 #groq-log {
-    background-color: #fdfdfd;
+    background-color: var(--card-bg);
     border-radius: 4px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
@@ -27,7 +124,6 @@
     gap: 10px;
 }
 
-/* Individual Log Entries */
 .log-entry {
     padding: 10px 14px;
     border-radius: 12px;
@@ -48,7 +144,7 @@
     opacity: 0.7;
 }
 
-/* --- Personality Variations --- */
+/* Personality Variations */
 .personality-friendly {
     background-color: #e7f3ff;
     color: #0056b3;
@@ -71,13 +167,13 @@
     font-weight: 500;
 }
 
-/* --- Scrollbar Polish --- */
+/* Scrollbar Polish */
 #groq-log::-webkit-scrollbar {
     width: 6px;
 }
 
 #groq-log::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: transparent;
 }
 
 #groq-log::-webkit-scrollbar-thumb {
@@ -89,7 +185,10 @@
     background: #999;
 }
 
-/* --- Animations --- */
+
+/* =========================================
+   ANIMATIONS
+========================================= */
 @keyframes slideIn {
     from {
         opacity: 0;
@@ -99,10 +198,4 @@
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* --- General Theme --- */
-body {
-    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-    min-height: 100vh;
 }
